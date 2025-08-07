@@ -172,17 +172,17 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-around">
             {[
-              { icon: "📍", label: "Plan", active: true, path: "/dashboard" },
-              { icon: "🔍", label: "Explore", active: false, path: "/explore" },
-              { icon: "🗺️", label: "Search", active: false, path: "/search" },
-              { icon: "👤", label: "Profile", active: false, path: "/profile" },
+              { icon: "📍", label: "Plan", active: true },
+              { icon: "🗺️", label: "Map", active: false },
+              { icon: "📸", label: "Gallery", active: false },
+              { icon: "🔍", label: "Explore", active: false },
+              { icon: "👤", label: "Profile", active: false },
             ].map((item, index) => (
               <button
                 key={index}
                 className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors ${
                   item.active ? "text-primary" : "text-muted-foreground"
                 }`}
-                onClick={() => navigate(item.path)}
               >
                 <span className="text-lg">{item.icon}</span>
                 <span className="text-xs font-medium">{item.label}</span>
