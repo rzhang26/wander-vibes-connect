@@ -73,6 +73,50 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     }
   };
 
+  const handleConsent = async () => {
+    const selectedPlatforms = Object.entries(platforms)
+      .filter(([_, enabled]) => enabled)
+      .map(([platform, _]) => platform.charAt(0).toUpperCase() + platform.slice(1));
+
+    const payload = {
+      userId: "user123", // replace this with the actual user ID if available
+      platforms: selectedPlatforms.length > 0 ? selectedPlatforms : ["TikTok", "Instagram", "Pinterest"], // replace with dynamic selections if needed
+      consentGiven: true,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch("https://rzhang26.app.n8n.cloud/webhook-test/wandr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        console.log("✅ Webhook sent");
+        toast({
+          title: "🎉 Connected!",
+          description: "Your social platforms have been connected successfully!",
+        });
+      } else {
+        console.error("❌ Webhook error:", response.status);
+        toast({
+          title: "⚠️ Connection Issue",
+          description: "There was an issue connecting your platforms, but you can continue.",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "⚠️ Connection Issue",
+        description: "There was an issue connecting your platforms, but you can continue.",
+      });
+    }
+    
+    // Continue to next step regardless of webhook success/failure
+    handleNext();
+  };
+
   const togglePlatform = (platform: keyof typeof platforms) => {
     setPlatforms(prev => ({ ...prev, [platform]: !prev[platform] }));
   };
@@ -140,7 +184,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               ))}
             </div>
 
-            <Button onClick={handleNext} className="w-full">
+            <Button onClick={handleConsent} className="w-full">
               Agree & Connect Feeds 🌟
             </Button>
           </div>
