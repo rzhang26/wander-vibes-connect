@@ -38,7 +38,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     };
 
     try {
-      const response = await fetch("https://rzhang26.app.n8n.cloud/webhook-test/wandr", {
+      const response = await fetch("https://tianchen.app.n8n.cloud/webhook-test/5ba67ece-3d1d-470a-9b67-1f9cd5315deb", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
