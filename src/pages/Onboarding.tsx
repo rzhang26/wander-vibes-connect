@@ -29,58 +29,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const sendWebhook = async () => {
-    const selectedPlatforms = Object.entries(platforms)
-      .filter(([_, enabled]) => enabled)
-      .map(([platform, _]) => platform.charAt(0).toUpperCase() + platform.slice(1));
-
-    const payload = {
-      userId: `user_${Date.now()}`,
-      platforms: selectedPlatforms,
-      consentGiven: selectedPlatforms.length > 0,
-      timestamp: new Date().toISOString(),
-    };
-
-    try {
-      await fetch("https://rzhang26.app.n8n.cloud/webhook-test/wandr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      
-      toast({
-        title: "🎉 Welcome to Wandr!",
-        description: "Your preferences have been saved and social feeds connected!",
-      });
-    } catch (error) {
-      console.error("Webhook error:", error);
-      toast({
-        title: "Connected!",
-        description: "Welcome to Wandr - let's start exploring!",
-      });
-    }
-  };
-
-  const handleNext = () => {
-    if (step < 4) {
-      setStep(step + 1);
-    } else {
-      sendWebhook();
-      onComplete();
-      navigate("/dashboard");
-    }
-  };
-
-  const handleConsent = async () => {
-    const selectedPlatforms = Object.entries(platforms)
-      .filter(([_, enabled]) => enabled)
-      .map(([platform, _]) => platform.charAt(0).toUpperCase() + platform.slice(1));
-
+  const handleGetStarted = async () => {
     const payload = {
       userId: "user123", // replace this with the actual user ID if available
-      platforms: selectedPlatforms.length > 0 ? selectedPlatforms : ["TikTok", "Instagram", "Pinterest"], // replace with dynamic selections if needed
+      platforms: ["TikTok", "Instagram", "Pinterest"], // replace with dynamic selections if needed
       consentGiven: true,
       timestamp: new Date().toISOString()
     };
@@ -95,26 +47,35 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       if (response.ok) {
         console.log("✅ Webhook sent");
         toast({
-          title: "🎉 Connected!",
-          description: "Your social platforms have been connected successfully!",
+          title: "🎉 Welcome to Wandr!",
+          description: "Your journey begins now!",
         });
       } else {
         console.error("❌ Webhook error:", response.status);
         toast({
-          title: "⚠️ Connection Issue",
-          description: "There was an issue connecting your platforms, but you can continue.",
+          title: "Welcome to Wandr!",
+          description: "Let's start exploring!",
         });
       }
     } catch (error) {
       console.error("Error:", error);
       toast({
-        title: "⚠️ Connection Issue",
-        description: "There was an issue connecting your platforms, but you can continue.",
+        title: "Welcome to Wandr!",
+        description: "Let's start exploring!",
       });
     }
     
     // Continue to next step regardless of webhook success/failure
-    handleNext();
+    setStep(step + 1);
+  };
+
+  const handleNext = () => {
+    if (step < 4) {
+      setStep(step + 1);
+    } else {
+      onComplete();
+      navigate("/dashboard");
+    }
   };
 
   const togglePlatform = (platform: keyof typeof platforms) => {
@@ -147,7 +108,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             <p className="text-sm text-muted-foreground">
               Discover viral destinations, plan with friends, and share your journey with the world.
             </p>
-            <Button onClick={handleNext} className="w-full wandr-gradient">
+            <Button onClick={handleGetStarted} className="w-full wandr-gradient">
               Get Started 🚀
             </Button>
           </div>
@@ -184,7 +145,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               ))}
             </div>
 
-            <Button onClick={handleConsent} className="w-full">
+            <Button onClick={handleNext} className="w-full">
               Agree & Connect Feeds 🌟
             </Button>
           </div>
