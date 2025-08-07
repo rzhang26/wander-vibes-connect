@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { SmartSearch } from "@/components/SmartSearch";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,15 +77,11 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-8">
-        {/* Search */}
-        <div className="relative">
-          <Input
-            placeholder="Search destinations, vibes, or challenges... 🔍"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-4 pr-12 py-3 text-lg rounded-2xl border-2 border-purple-200 focus:border-purple-400"
-          />
-        </div>
+        {/* Smart Search */}
+        <SmartSearch 
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
