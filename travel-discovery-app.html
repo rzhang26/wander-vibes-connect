@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wandr - Travel Discovery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+        }
+
+        /* Section */
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        /* Auth Section */
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 2px solid #e1e5e9;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .toggle-auth button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        /* Search Section */
+        .search-container {
+            text-align: center;
+        }
+
+        .search-bar {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .map-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1976d2;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .trending-places {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .place-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .place-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .place-category {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .place-rating {
+            color: #ff9800;
+            margin-bottom: 8px;
+        }
+
+        .place-description {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Explore Section */
+        .explore-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .post-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .post-content {
+            padding: 20px;
+        }
+
+        .post-platform {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .post-caption {
+            color: #333;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .post-hashtags {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Profile Section */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-pic-input {
+            display: none;
+        }
+
+        .profile-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile-section {
+            margin-bottom: 30px;
+        }
+
+        .profile-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .interests-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .interest-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .interest-tag:hover {
+            transform: scale(1.05);
+        }
+
+        .favorites-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .favorite-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-favorite {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .trending-places,
+            .explore-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section.active {
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">Wandr</div>
+            <div class="nav">
+                <button class="nav-btn active" onclick="showSection('explore')">Explore</button>
+                <button class="nav-btn" onclick="showSection('search')">Search</button>
+                <button class="nav-btn" onclick="showSection('profile')">Profile</button>
+                <button class="nav-btn" onclick="showSection('auth')">Login</button>
+            </div>
+        </div>
+
+        <!-- Auth Section -->
+        <div id="auth" class="section">
+            <h2>Welcome to Wandr</h2>
+            <div class="auth-form">
+                <div id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password">
+                    </div>
+                    <button class="btn btn-primary" onclick="login()">Login</button>
+                    <button class="btn btn-google" onclick="googleLogin()">Continue with Google</button>
+                    <div class="toggle-auth">
+                        <button onclick="toggleAuthForm()">Don't have an account? Sign up</button>
+                    </div>
+                </div>
+
+                <div id="signup-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="Create a password">
+                    </div>
+                    <button class="btn btn-primary" onclick="signup()">Sign Up</button>
+                    <button class="btn btn-google" onclick="googleLogin()">Continue with Google</button>
+                    <div class="toggle-auth">
+                        <button onclick="toggleAuthForm()">Already have an account? Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explore Section -->
+        <div id="explore" class="section active">
+            <h2>Discover Amazing Places</h2>
+            <div class="explore-grid">
+                <div class="post-card">
+                    <div class="post-image">🌅</div>
+                    <div class="post-content">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">Sunset vibes in Bali! This place is absolutely magical ✨</div>
+                        <div class="post-hashtags">#bali #sunset #travel #paradise</div>
+                        <div class="post-stats">
+                            <span>❤️ 2.4k</span>
+                            <span>💬 156</span>
+                            <span>📤 89</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-image">🍜</div>
+                    <div class="post-content">
+                        <div class="post-platform">TikTok</div>
+                        <div class="post-caption">Best ramen in Tokyo! You have to try this place 🍜</div>
+                        <div class="post-hashtags">#tokyo #ramen #foodie #japan</div>
+                        <div class="post-stats">
+                            <span>❤️ 15.2k</span>
+                            <span>💬 892</span>
+                            <span>📤 2.1k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-image">🏔️</div>
+                    <div class="post-content">
+                        <div class="post-platform">Pinterest</div>
+                        <div class="post-caption">Swiss Alps hiking trail - pure adventure awaits!</div>
+                        <div class="post-hashtags">#swiss #alps #hiking #adventure</div>
+                        <div class="post-stats">
+                            <span>❤️ 5.7k</span>
+                            <span>💬 234</span>
+                            <span>📤 1.2k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-image">🏖️</div>
+                    <div class="post-content">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">Crystal clear waters in the Maldives 🌊</div>
+                        <div class="post-hashtags">#maldives #beach #paradise #ocean</div>
+                        <div class="post-stats">
+                            <span>❤️ 8.9k</span>
+                            <span>💬 445</span>
+                            <span>📤 1.8k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-image">🗽</div>
+                    <div class="post-content">
+                        <div class="post-platform">TikTok</div>
+                        <div class="post-caption">New York City vibes! The energy here is incredible 🗽</div>
+                        <div class="post-hashtags">#nyc #newyork #city #travel</div>
+                        <div class="post-stats">
+                            <span>❤️ 12.3k</span>
+                            <span>💬 678</span>
+                            <span>📤 3.4k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-image">🍷</div>
+                    <div class="post-content">
+                        <div class="post-platform">Pinterest</div>
+                        <div class="post-caption">Wine tasting in Tuscany - the perfect Italian experience</div>
+                        <div class="post-hashtags">#tuscany #wine #italy #food</div>
+                        <div class="post-stats">
+                            <span>❤️ 3.1k</span>
+                            <span>💬 123</span>
+                            <span>📤 567</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div id="search" class="section">
+            <h2>Find Your Next Adventure</h2>
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="search-input" placeholder="Search destinations (e.g., Tokyo, Paris, Bali)">
+                    <button class="search-btn" onclick="searchDestination()">Search</button>
+                </div>
+
+                <div class="map-container">
+                    <div class="map-placeholder" id="map-placeholder">
+                        Enter a destination to see it on the map
+                    </div>
+                </div>
+
+                <div class="trending-places" id="trending-places">
+                    <!-- Trending places will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile" class="section">
+            <h2>Your Profile</h2>
+            <div class="profile-header">
+                <div class="profile-pic-container">
+                    <div class="profile-pic" onclick="document.getElementById('profile-pic-input').click()">
+                        👤
+                    </div>
+                    <input type="file" id="profile-pic-input" class="profile-pic-input" accept="image/*" onchange="handleProfilePicChange(event)">
+                </div>
+            </div>
+
+            <div class="profile-form">
+                <div class="profile-section">
+                    <h3>Personal Information</h3>
+                    <div class="form-group">
+                        <label for="profile-name">Full Name</label>
+                        <input type="text" id="profile-name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-bio">Bio</label>
+                        <input type="text" id="profile-bio" placeholder="Tell us about yourself">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-location">Location</label>
+                        <input type="text" id="profile-location" placeholder="Where are you based?">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+                </div>
+
+                <div class="profile-section">
+                    <h3>Interests</h3>
+                    <div class="interests-tags" id="interests-tags">
+                        <span class="interest-tag" onclick="toggleInterest(this)">Adventure</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Food</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Culture</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Nature</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Nightlife</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Beach</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">Mountains</span>
+                        <span class="interest-tag" onclick="toggleInterest(this)">City</span>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>Favorite Destinations</h3>
+                    <div class="favorites-list" id="favorites-list">
+                        <!-- Favorites will be populated by JavaScript -->
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="new-favorite" placeholder="Add a new favorite destination">
+                        <button class="btn btn-primary" onclick="addFavorite()" style="margin-top: 10px;">Add Favorite</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for trending places
+        const trendingPlaces = {
+            'tokyo': [
+                { name: 'Sushi Saito', category: 'Restaurant', rating: '⭐⭐⭐⭐⭐', description: 'Michelin-starred sushi restaurant' },
+                { name: 'Shibuya Crossing', category: 'Attraction', rating: '⭐⭐⭐⭐', description: 'Famous pedestrian crossing' },
+                { name: 'Womb Nightclub', category: 'Nightlife', rating: '⭐⭐⭐⭐', description: 'Popular electronic music venue' },
+                { name: 'Senso-ji Temple', category: 'Attraction', rating: '⭐⭐⭐⭐⭐', description: 'Ancient Buddhist temple' }
+            ],
+            'paris': [
+                { name: 'Le Jules Verne', category: 'Restaurant', rating: '⭐⭐⭐⭐⭐', description: 'Fine dining in the Eiffel Tower' },
+                { name: 'Louvre Museum', category: 'Attraction', rating: '⭐⭐⭐⭐⭐', description: 'World-famous art museum' },
+                { name: 'Le Baron', category: 'Nightlife', rating: '⭐⭐⭐⭐', description: 'Exclusive nightclub' },
+                { name: 'Arc de Triomphe', category: 'Attraction', rating: '⭐⭐⭐⭐', description: 'Historic monument' }
+            ],
+            'bali': [
+                { name: 'Ubud Sacred Monkey Forest', category: 'Attraction', rating: '⭐⭐⭐⭐', description: 'Nature sanctuary with monkeys' },
+                { name: 'Potato Head Beach Club', category: 'Nightlife', rating: '⭐⭐⭐⭐', description: 'Beachfront club and restaurant' },
+                { name: 'Warung Babi Guling', category: 'Restaurant', rating: '⭐⭐⭐⭐', description: 'Famous Balinese restaurant' },
+                { name: 'Tanah Lot Temple', category: 'Attraction', rating: '⭐⭐⭐⭐⭐', description: 'Sea temple on rock formation' }
+            ]
+        };
+
+        // Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Auth functions
+        function toggleAuthForm() {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+            }
+        }
+
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (email && password) {
+                alert('Login successful! Welcome back!');
+                showSection('explore');
+                updateNavButtons();
+            } else {
+                alert('Please enter both email and password');
+            }
+        }
+
+        function signup() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            if (name && email && password) {
+                alert('Account created successfully! Welcome to Wandr!');
+                showSection('explore');
+                updateNavButtons();
+            } else {
+                alert('Please fill in all fields');
+            }
+        }
+
+        function googleLogin() {
+            alert('Google login would be implemented here!');
+            showSection('explore');
+            updateNavButtons();
+        }
+
+        function updateNavButtons() {
+            // Update nav buttons to show user is logged in
+            const authBtn = document.querySelector('.nav-btn[onclick="showSection(\'auth\')"]');
+            authBtn.textContent = 'Logout';
+            authBtn.onclick = logout;
+        }
+
+        function logout() {
+            alert('Logged out successfully!');
+            showSection('auth');
+            const authBtn = document.querySelector('.nav-btn[onclick="logout()"]');
+            authBtn.textContent = 'Login';
+            authBtn.onclick = () => showSection('auth');
+        }
+
+        // Search functions
+        function searchDestination() {
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+            const mapPlaceholder = document.getElementById('map-placeholder');
+            
+            if (searchInput) {
+                mapPlaceholder.innerHTML = `📍 Showing map for: ${searchInput.charAt(0).toUpperCase() + searchInput.slice(1)}<br><br>Map would be embedded here with location data`;
+                showTrendingPlaces(searchInput);
+            } else {
+                alert('Please enter a destination');
+            }
+        }
+
+        function showTrendingPlaces(destination) {
+            const placesContainer = document.getElementById('trending-places');
+            const places = trendingPlaces[destination] || [
+                { name: 'Sample Restaurant', category: 'Restaurant', rating: '⭐⭐⭐⭐', description: 'Popular local restaurant' },
+                { name: 'Local Attraction', category: 'Attraction', rating: '⭐⭐⭐⭐', description: 'Must-visit destination' },
+                { name: 'Night Club', category: 'Nightlife', rating: '⭐⭐⭐⭐', description: 'Trendy nightlife spot' }
+            ];
+            
+            placesContainer.innerHTML = places.map(place => `
+                <div class="place-card">
+                    <div class="place-name">${place.name}</div>
+                    <div class="place-category">${place.category}</div>
+                    <div class="place-rating">${place.rating}</div>
+                    <div class="place-description">${place.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Profile functions
+        function handleProfilePicChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const profilePic = document.querySelector('.profile-pic');
+                    profilePic.style.backgroundImage = `url(${e.target.result})`;
+                    profilePic.style.backgroundSize = 'cover';
+                    profilePic.style.backgroundPosition = 'center';
+                    profilePic.innerHTML = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profile-name').value;
+            const bio = document.getElementById('profile-bio').value;
+            const location = document.getElementById('profile-location').value;
+            
+            // Save to localStorage
+            localStorage.setItem('profile', JSON.stringify({ name, bio, location }));
+            alert('Profile saved successfully!');
+        }
+
+        function toggleInterest(element) {
+            element.style.background = element.style.background === 'rgb(255, 255, 255)' ? 
+                'linear-gradient(135deg, #667eea, #764ba2)' : 'rgb(255, 255, 255)';
+            element.style.color = element.style.color === 'white' ? '#333' : 'white';
+        }
+
+        function addFavorite() {
+            const newFavorite = document.getElementById('new-favorite').value;
+            if (newFavorite) {
+                const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                favorites.push(newFavorite);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                document.getElementById('new-favorite').value = '';
+                displayFavorites();
+            }
+        }
+
+        function removeFavorite(index) {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            favorites.splice(index, 1);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            displayFavorites();
+        }
+
+        function displayFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const favoritesList = document.getElementById('favorites-list');
+            
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '<p style="text-align: center; color: #666;">No favorite destinations yet. Add some!</p>';
+            } else {
+                favoritesList.innerHTML = favorites.map((favorite, index) => `
+                    <div class="favorite-item">
+                        <span>${favorite}</span>
+                        <button class="remove-favorite" onclick="removeFavorite(${index})">Remove</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved profile data
+            const savedProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+            if (savedProfile.name) document.getElementById('profile-name').value = savedProfile.name;
+            if (savedProfile.bio) document.getElementById('profile-bio').value = savedProfile.bio;
+            if (savedProfile.location) document.getElementById('profile-location').value = savedProfile.location;
+            
+            // Display favorites
+            displayFavorites();
+            
+            // Add enter key support for search
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchDestination();
+                }
+            });
+            
+            // Add enter key support for new favorite
+            document.getElementById('new-favorite').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addFavorite();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
