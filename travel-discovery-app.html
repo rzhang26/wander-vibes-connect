@@ -692,6 +692,21 @@
         });
 
         // Search functionality
+        // Unsplash API (official) - used to fetch images for search results
+        const UNSPLASH_ACCESS_KEY = 'rzLFCRQSEqAPRN0qyUhtZAmiL29lS_K3cy7s5XEx3NI';
+        async function fetchUnsplashImage(query) {
+            try {
+                const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1&content_filter=high&client_id=${UNSPLASH_ACCESS_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                const first = data && data.results && data.results[0];
+                return (first && (first.urls?.regular || first.urls?.small || first.urls?.thumb)) || '';
+            } catch (e) {
+                console.error('Unsplash fetch error:', e);
+                return '';
+            }
+        }
+
         function searchDestination() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const resultsContainer = document.getElementById('search-results');
@@ -715,9 +730,11 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Webhook response:', data);
-                // Handle both array and single object
                 let results = [];
-                if (Array.isArray(data)) {
+                // Handle the actual response format
+                if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0].output)) {
+                    results = data[0].output;
+                } else if (Array.isArray(data)) {
                     results = data;
                 } else if (typeof data === 'object' && data !== null) {
                     results = [data];
@@ -736,11 +753,60 @@
                         }
                         return dest;
                     });
-                    resultsContainer.innerHTML = `
-                        <div class="destinations-grid">
-                            ${results.map(dest => createDestinationCard(dest)).join('')}
-                        </div>
-                    `;
+
+                    // Enrich each destination with an Unsplash image based on its name
+                    resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">Fetching images...</p>';
+                    Promise.all(
+                        results.map(async (dest) => {
+                            const imageFromUnsplash = await fetchUnsplashImage(dest.name || 'travel');
+                            return { ...dest, image: imageFromUnsplash }; // override webhook image
+                        })
+                    ).then((enriched) => {
+                        const first = enriched[0];
+                        const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(first.name || 'travel')}&output=embed`;
+                        const qBase = encodeURIComponent(first.name || 'travel');
+                        resultsContainer.innerHTML = `
+                            <div class="map-container">
+                                <h3>${first.name}</h3>
+                                <iframe class="map-frame" src="${mapSrc}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="destinations-grid">
+                                ${enriched.map(dest => createDestinationCard(dest)).join('')}
+                            </div>
+                            <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                                <h3>Nearby Attractions</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Museums+near+${qBase}" target="_blank" rel="noopener noreferrer">🏛️ Museums near ${first.name}</a></li>
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Restaurants+near+${qBase}" target="_blank" rel="noopener noreferrer">🍽️ Restaurants near ${first.name}</a></li>
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Cultural+Centers+near+${qBase}" target="_blank" rel="noopener noreferrer">🎭 Cultural centers near ${first.name}</a></li>
+                                    <li style="padding: 10px 0;"><a href="https://www.google.com/maps/search/?api=1&query=Parks+near+${qBase}" target="_blank" rel="noopener noreferrer">🌳 Parks near ${first.name}</a></li>
+                                </ul>
+                            </div>
+                        `;
+                    }).catch(() => {
+                        // If Unsplash fails, still render without images (fallback will kick in)
+                        const first = results[0];
+                        const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(first.name || 'travel')}&output=embed`;
+                        const qBase = encodeURIComponent(first.name || 'travel');
+                        resultsContainer.innerHTML = `
+                            <div class="map-container">
+                                <h3>${first.name}</h3>
+                                <iframe class="map-frame" src="${mapSrc}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <div class="destinations-grid">
+                                ${results.map(dest => createDestinationCard(dest)).join('')}
+                            </div>
+                            <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                                <h3>Nearby Attractions</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Museums+near+${qBase}" target="_blank" rel="noopener noreferrer">🏛️ Museums near ${first.name}</a></li>
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Restaurants+near+${qBase}" target="_blank" rel="noopener noreferrer">🍽️ Restaurants near ${first.name}</a></li>
+                                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Cultural+Centers+near+${qBase}" target="_blank" rel="noopener noreferrer">🎭 Cultural centers near ${first.name}</a></li>
+                                    <li style="padding: 10px 0;"><a href="https://www.google.com/maps/search/?api=1&query=Parks+near+${qBase}" target="_blank" rel="noopener noreferrer">🌳 Parks near ${first.name}</a></li>
+                                </ul>
+                            </div>
+                        `;
+                    });
                 } else {
                     // Fallback to local search if no results
                     const matchingDestinations = destinations.filter(dest => 
@@ -756,10 +822,12 @@
                         return;
                     }
                     const destination = matchingDestinations[0];
+                    const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(destination.name)}&output=embed`;
+                    const qBase = encodeURIComponent(destination.name);
                     resultsContainer.innerHTML = `
                         <div class="map-container">
                             <h3>${destination.name}</h3>
-                            <iframe class="map-frame" src="${destination.mapUrl}" allowfullscreen></iframe>
+                            <iframe class="map-frame" src="${mapSrc}" allowfullscreen></iframe>
                         </div>
                         <div class="destinations-grid">
                             ${createDestinationCard(destination)}
@@ -767,10 +835,10 @@
                         <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
                             <h3>Nearby Attractions</h3>
                             <ul style="list-style: none; padding: 0;">
-                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🏛️ ${destination.name} Museum</li>
-                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🍽️ Local Cuisine Restaurant</li>
-                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🎭 Cultural Center</li>
-                                <li style="padding: 10px 0;">🌳 Central Park</li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Museums+near+${qBase}" target="_blank" rel="noopener noreferrer">🏛️ Museums near ${destination.name}</a></li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Restaurants+near+${qBase}" target="_blank" rel="noopener noreferrer">🍽️ Restaurants near ${destination.name}</a></li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Cultural+Centers+near+${qBase}" target="_blank" rel="noopener noreferrer">🎭 Cultural centers near ${destination.name}</a></li>
+                                <li style="padding: 10px 0;"><a href="https://www.google.com/maps/search/?api=1&query=Parks+near+${qBase}" target="_blank" rel="noopener noreferrer">🌳 Parks near ${destination.name}</a></li>
                             </ul>
                         </div>
                     `;
@@ -792,10 +860,12 @@
                     return;
                 }
                 const destination = matchingDestinations[0];
+                const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(destination.name)}&output=embed`;
+                const qBase = encodeURIComponent(destination.name);
                 resultsContainer.innerHTML = `
                     <div class="map-container">
                         <h3>${destination.name}</h3>
-                        <iframe class="map-frame" src="${destination.mapUrl}" allowfullscreen></iframe>
+                        <iframe class="map-frame" src="${mapSrc}" allowfullscreen></iframe>
                     </div>
                     <div class="destinations-grid">
                         ${createDestinationCard(destination)}
@@ -803,10 +873,10 @@
                     <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
                         <h3>Nearby Attractions</h3>
                         <ul style="list-style: none; padding: 0;">
-                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🏛️ ${destination.name} Museum</li>
-                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🍽️ Local Cuisine Restaurant</li>
-                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🎭 Cultural Center</li>
-                            <li style="padding: 10px 0;">🌳 Central Park</li>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Museums+near+${qBase}" target="_blank" rel="noopener noreferrer">🏛️ Museums near ${destination.name}</a></li>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Restaurants+near+${qBase}" target="_blank" rel="noopener noreferrer">🍽️ Restaurants near ${destination.name}</a></li>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="https://www.google.com/maps/search/?api=1&query=Cultural+Centers+near+${qBase}" target="_blank" rel="noopener noreferrer">🎭 Cultural centers near ${destination.name}</a></li>
+                            <li style="padding: 10px 0;"><a href="https://www.google.com/maps/search/?api=1&query=Parks+near+${qBase}" target="_blank" rel="noopener noreferrer">🌳 Parks near ${destination.name}</a></li>
                         </ul>
                     </div>
                 `;
@@ -815,19 +885,18 @@
 
         // Create destination card HTML
         function createDestinationCard(destination) {
-            // Use only the exact property names from the webhook
             const id = destination.id;
-            const name = destination.name;
+            const name = destination.name || 'Unknown';
             const image = destination.image;
             const tags = Array.isArray(destination.tags) ? destination.tags : [];
-            const description = destination.description;
+            const description = destination.description || '';
             const isFavorited = favorites.includes(id);
             const fallbackImage = `https://via.placeholder.com/800x600/e2e8f0/2d3748?text=${encodeURIComponent(name)}`;
             return `
                 <div class="destination-card">
                     <div class="card-image">
                         <img 
-                            src="${image || fallbackImage}" 
+                            src="${image ? image : fallbackImage}" 
                             alt="${name}" 
                             loading="lazy"
                             onerror="this.onerror=null; this.src='${fallbackImage}';">
