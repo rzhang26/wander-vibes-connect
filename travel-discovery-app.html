@@ -13,13 +13,28 @@
 
         html, body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             color: #333;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
             overflow-y: auto;
+            /* Animated swaying pastel gradient */
+            background: linear-gradient(120deg, #f8e1ff, #ffe7d1, #d1f7ff, #f9f6e7);
+            background-size: 400% 400%;
+            animation: sway-gradient 18s ease-in-out infinite;
+        }
+
+        @keyframes sway-gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .container {
@@ -685,64 +700,146 @@
                 resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">Enter a destination to search</p>';
                 return;
             }
-            
-            const matchingDestinations = destinations.filter(dest => 
-                dest.name.toLowerCase().includes(query)
-            );
-            
-            if (matchingDestinations.length === 0) {
+
+            // Show loading state
+            resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">Searching...</p>';
+
+            // Call webhook
+            fetch('https://rzhang26.app.n8n.cloud/webhook-test/WandrAI', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Webhook response:', data);
+                // Handle both array and single object
+                let results = [];
+                if (Array.isArray(data)) {
+                    results = data;
+                } else if (typeof data === 'object' && data !== null) {
+                    results = [data];
+                }
+                if (results.length > 0) {
+                    // Ensure tags is always an array
+                    results = results.map(dest => {
+                        if (!Array.isArray(dest.tags)) {
+                            if (typeof dest.tags === 'string') {
+                                dest.tags = [dest.tags];
+                            } else if (dest.tags && typeof dest.tags === 'object') {
+                                dest.tags = Object.values(dest.tags);
+                            } else {
+                                dest.tags = [];
+                            }
+                        }
+                        return dest;
+                    });
+                    resultsContainer.innerHTML = `
+                        <div class="destinations-grid">
+                            ${results.map(dest => createDestinationCard(dest)).join('')}
+                        </div>
+                    `;
+                } else {
+                    // Fallback to local search if no results
+                    const matchingDestinations = destinations.filter(dest => 
+                        dest.name.toLowerCase().includes(query)
+                    );
+                    if (matchingDestinations.length === 0) {
+                        resultsContainer.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3>No destinations found</h3>
+                                <p style="color: #666;">Try searching for: Hawaii, Paris, Tokyo, New York, Iceland, or Bali</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    const destination = matchingDestinations[0];
+                    resultsContainer.innerHTML = `
+                        <div class="map-container">
+                            <h3>${destination.name}</h3>
+                            <iframe class="map-frame" src="${destination.mapUrl}" allowfullscreen></iframe>
+                        </div>
+                        <div class="destinations-grid">
+                            ${createDestinationCard(destination)}
+                        </div>
+                        <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                            <h3>Nearby Attractions</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🏛️ ${destination.name} Museum</li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🍽️ Local Cuisine Restaurant</li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🎭 Cultural Center</li>
+                                <li style="padding: 10px 0;">🌳 Central Park</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error('Search error:', err);
+                // Fallback to local search on error
+                const matchingDestinations = destinations.filter(dest => 
+                    dest.name.toLowerCase().includes(query)
+                );
+                if (matchingDestinations.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3>No destinations found</h3>
+                            <p style="color: #666;">Try searching for: Hawaii, Paris, Tokyo, New York, Iceland, or Bali</p>
+                        </div>
+                    `;
+                    return;
+                }
+                const destination = matchingDestinations[0];
                 resultsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <h3>No destinations found</h3>
-                        <p style="color: #666;">Try searching for: Hawaii, Paris, Tokyo, New York, Iceland, or Bali</p>
+                    <div class="map-container">
+                        <h3>${destination.name}</h3>
+                        <iframe class="map-frame" src="${destination.mapUrl}" allowfullscreen></iframe>
+                    </div>
+                    <div class="destinations-grid">
+                        ${createDestinationCard(destination)}
+                    </div>
+                    <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                        <h3>Nearby Attractions</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🏛️ ${destination.name} Museum</li>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🍽️ Local Cuisine Restaurant</li>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🎭 Cultural Center</li>
+                            <li style="padding: 10px 0;">🌳 Central Park</li>
+                        </ul>
                     </div>
                 `;
-                return;
-            }
-            
-            const destination = matchingDestinations[0];
-            resultsContainer.innerHTML = `
-                <div class="map-container">
-                    <h3>${destination.name}</h3>
-                    <iframe class="map-frame" src="${destination.mapUrl}" allowfullscreen></iframe>
-                </div>
-                <div class="destinations-grid">
-                    ${createDestinationCard(destination)}
-                </div>
-                <div style="background: white; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
-                    <h3>Nearby Attractions</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🏛️ ${destination.name} Museum</li>
-                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🍽️ Local Cuisine Restaurant</li>
-                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">🎭 Cultural Center</li>
-                        <li style="padding: 10px 0;">🌳 Central Park</li>
-                    </ul>
-                </div>
-            `;
+            });
         }
 
         // Create destination card HTML
         function createDestinationCard(destination) {
-            const isFavorited = favorites.includes(destination.id);
-            const fallbackImage = `https://via.placeholder.com/800x600/e2e8f0/2d3748?text=${encodeURIComponent(destination.name)}`;
-            
+            // Use only the exact property names from the webhook
+            const id = destination.id;
+            const name = destination.name;
+            const image = destination.image;
+            const tags = Array.isArray(destination.tags) ? destination.tags : [];
+            const description = destination.description;
+            const isFavorited = favorites.includes(id);
+            const fallbackImage = `https://via.placeholder.com/800x600/e2e8f0/2d3748?text=${encodeURIComponent(name)}`;
             return `
                 <div class="destination-card">
                     <div class="card-image">
                         <img 
-                            src="${destination.image}" 
-                            alt="${destination.name}" 
+                            src="${image || fallbackImage}" 
+                            alt="${name}" 
                             loading="lazy"
                             onerror="this.onerror=null; this.src='${fallbackImage}';">
                     </div>
                     <div class="card-content">
-                        <h3 class="card-title">${destination.name}</h3>
+                        <h3 class="card-title">${name}</h3>
                         <div class="card-tags">
-                            ${destination.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
-                        <p class="card-description">${destination.description}</p>
+                        <p class="card-description">${description}</p>
                         <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
-                                onclick="toggleFavorite(${destination.id})">
+                                onclick="toggleFavorite('${id}')">
                             ${isFavorited ? '❤️ Favorited' : '🤍 Add to Favorites'}
                         </button>
                     </div>
@@ -758,6 +855,7 @@
 
         // Toggle favorite
         function toggleFavorite(destinationId) {
+            // Accept both string and number IDs
             const index = favorites.indexOf(destinationId);
             if (index > -1) {
                 favorites.splice(index, 1);
@@ -765,8 +863,7 @@
                 favorites.push(destinationId);
             }
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // Refresh current view
+            // Refresh only explore and profile tabs
             if (document.getElementById('explore').classList.contains('active')) {
                 loadExploreDestinations();
             }
